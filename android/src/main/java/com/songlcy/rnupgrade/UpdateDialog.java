@@ -28,14 +28,23 @@ class UpdateDialog {
 //         }
 //     }
 
+    static Intent intentDownloadService;
+
     private static boolean isContextValid(Context context) {
         return context instanceof Activity && !((Activity) context).isFinishing();
     }
 
     public static void goToDownload(Context context, String downloadUrl) {
-        Intent intent = new Intent(context.getApplicationContext(), DownloadService.class);
-        intent.putExtra(Constants.APK_DOWNLOAD_URL, downloadUrl);
-        context.startService(intent);
+        intentDownloadService = new Intent(context.getApplicationContext(), DownloadService.class);
+        intentDownloadService.putExtra(Constants.APK_DOWNLOAD_URL, downloadUrl);
+        context.startService(intentDownloadService);
+    }
+
+    public static void cancelDownload(Context context) {
+        if(intentDownloadService != null) {
+            context.stopService(intentDownloadService);
+            intentDownloadService = null;
+        }
     }
     
 }

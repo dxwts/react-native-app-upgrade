@@ -88,5 +88,11 @@ export const addDownLoadListener = (callBack) => {
     }
 };
 
+export const cancel = () => {
+    if (ANDROID_PLATFORM) {
+        RNUpgrade.cancel();
+    }
+}
+
 /** app版本号，如1.0.1 */
 export const versionName = RNUpgrade.versionName;

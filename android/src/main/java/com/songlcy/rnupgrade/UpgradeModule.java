@@ -51,6 +51,11 @@ public class UpgradeModule extends ReactContextBaseJavaModule {
         UpdateDialog.goToDownload(context, apkUrl);
     }
 
+    @ReactMethod
+    public void cancel() {
+        UpdateDialog.cancelDownload(context);
+    }
+
     public static void sendProgress(int msg) {
         context.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
                 .emit(EVENT_NAME, msg);

@@ -21,6 +21,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 public class DownloadService extends IntentService {
 
     private static final int BUFFER_SIZE = 10 * 1024; // 8k ~ 32K
@@ -32,6 +34,8 @@ public class DownloadService extends IntentService {
     private NotificationManager mNotifyManager;
     private Builder mBuilder;
     private Builder mDownLoadSuccessBuilder;
+
+    private AtomicBoolean abort = new AtomicBoolean(false);
 
     public DownloadService() {
         super("DownloadService");
@@ -83,6 +87,12 @@ public class DownloadService extends IntentService {
             int oldProgress = 0;
 
             while ((byteread = in.read(buffer)) != -1) {
+
+                if (abort.get()) {
+                    apkFile.delete();
+                    break;
+                }
+
                 bytesum += byteread;
                 out.write(buffer, 0, byteread);
 
@@ -94,10 +104,11 @@ public class DownloadService extends IntentService {
                 oldProgress = progress;
             }
 
-            // 下载完成
-            installAPk(apkFile, appName, icon);
-            mNotifyManager.cancel(NOTIFICATION_ID);
-
+            if (!abort.get()) {
+                // 下载完成
+                installAPk(apkFile, appName, icon);
+                mNotifyManager.cancel(NOTIFICATION_ID);
+            }
         } catch (Exception e) {
             Log.e(TAG, "download apk file error");
         } finally {
@@ -210,5 +221,11 @@ public class DownloadService extends IntentService {
                 .setAutoCancel(true);
         mDownLoadSuccessBuilder.setContentIntent(pendingIntent);
         mNotifyManager.notify(DOWNLOAD_SUCCESS_NOTIFICATION_ID, mDownLoadSuccessBuilder.build());
+    }
+
+    @Override
+    public void onDestroy() {
+        abort.set(true);
+        super.onDestroy();
     }
 }
